@@ -2657,8 +2657,7 @@ static int svsm_custom_protocol(int request)
 	struct svsm_call call = {};
 
 	call.caa = __svsm_get_caa();
-	call.rax = (4ULL << 32) | 1;
-	call.rcx = request;
+	call.rax = (4ULL << 32) | request;
 
 	int ret = svsm_protocol(&call);
 	native_irq_enable();
