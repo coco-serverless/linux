@@ -24,6 +24,7 @@
 #include <linux/tpm_platform.h>
 #include <linux/io.h>
 #include <linux/psp-sev.h>
+#include <linux/syscalls.h>
 #include <uapi/linux/sev-guest.h>
 
 #include <asm/cpu_entry_area.h>
@@ -2649,3 +2650,20 @@ static int __init sev_sysfs_init(void)
 	return ret;
 }
 arch_initcall(sev_sysfs_init);
+
+static int svsm_custom_protocol(int request)
+{
+	native_irq_disable();
+	struct svsm_call call = {};
+
+	call.caa = __svsm_get_caa();
+	call.rax = (4ULL << 32) | request;
+
+	int ret = svsm_protocol(&call);
+	native_irq_enable();
+	return ret;
+}
+
+SYSCALL_DEFINE1(svsm, int, request) {
+	return svsm_custom_protocol(request);
+}
